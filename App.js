@@ -1,6 +1,5 @@
-// TASK 2 — Interactive Profile Card (starter)
+// TASK 2 — Interactive Profile Card
 // Start point: the solution of Task 1 + the new data. Follow the steps in README.md.
-// TODO: add the imports you need in each step (Pressable, Button, Alert, TextInput, useState...)
 import {
   View,
   Text,
@@ -27,6 +26,7 @@ const COLORS = {
   border: '#E5E7EB',
   online: '#22C55E',
   offline: '#9CA3AF',
+  error: '#DC2626',
 };
 
 const NAME = 'Emmanuel Alejandro';
@@ -44,20 +44,33 @@ const SKILLS = [
 ];
 const BASE_FOLLOWERS = 120;
 const MAX_MESSAGE = 140;
+const FOLLOW_BUSY_MS = 2000;
 
 // Adds thousands separators: 1200 -> '1,200'
 function formatCount(n) {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+// BONUS: reusable tag. The parent owns the state and passes selected + onPress.
+function Tag({ label, selected, onPress }) {
+  return (
+    <Pressable style={[styles.tag, selected && styles.tagSelected]} onPress={onPress}>
+      <Text style={[styles.tagText, selected && styles.tagTextSelected]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function App() {
   // STEP 3: follow / unfollow state
   const [isFollowing, setIsFollowing] = useState(false);
+  // BONUS: the Follow button is disabled for 2 seconds after each press
+  const [isBusy, setIsBusy] = useState(false);
 
   // STEP 4: message composer state
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [message, setMessage] = useState('');
   const isSendDisabled = message.trim().length === 0;
+  const isMessageTooLong = message.length >= MAX_MESSAGE;
 
   // When the keyboard opens, scroll down so the input stays visible above it.
   const scrollRef = useRef(null);
@@ -80,6 +93,8 @@ export default function App() {
   // STEP 3: toggles the value instead of showing an alert
   function handleFollowPress() {
     setIsFollowing(!isFollowing);
+    setIsBusy(true);
+    setTimeout(() => setIsBusy(false), FOLLOW_BUSY_MS);
   }
 
   // STEP 4: opens / closes the composer
@@ -163,30 +178,22 @@ export default function App() {
               ))}
             </View>
 
-            {/* STEP 5: selectable skills */}
+            {/* STEP 5: selectable skills (BONUS: rendered with the Tag component) */}
             <View style={styles.tags}>
-              {SKILLS.map((skill) => {
-                const isSelected = selectedSkills.includes(skill);
-                return (
-                  <Pressable
-                    key={skill}
-                    style={[styles.tag, isSelected && styles.tagSelected]}
-                    onPress={() => handleSkillPress(skill)}
-                  >
-                    <Text style={[styles.tagText, isSelected && styles.tagTextSelected]}>
-                      {skill}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+              {SKILLS.map((skill) => (
+                <Tag
+                  key={skill}
+                  label={skill}
+                  selected={selectedSkills.includes(skill)}
+                  onPress={() => handleSkillPress(skill)}
+                />
+              ))}
             </View>
             <Text style={styles.hint}>
               Toca una habilidad para seleccionarla · {selectedSkills.length} seleccionadas
             </Text>
 
-            {/* TODO STEP 1-3: turn these two Views into Pressable components with onPress.
-                  STEP 2: give them visual feedback with the style function (pressed).
-                  STEP 3: make the Follow button toggle between 'Follow' and 'Following'. */}
+            {/* STEP 1: Pressable buttons with onPress */}
             <View style={styles.actions}>
               {/* STEP 2: style is a function that receives { pressed } and returns the styles. */}
               <Pressable
@@ -194,8 +201,10 @@ export default function App() {
                   styles.button,
                   isFollowing ? styles.buttonFollowing : styles.buttonPrimary,
                   pressed && styles.pressed,
+                  isBusy && styles.buttonBusy,
                 ]}
                 onPress={handleFollowPress}
+                disabled={isBusy}
               >
                 {/* STEP 3: label and text color depend on the state */}
                 <Text style={[styles.buttonText, !isFollowing && styles.buttonTextPrimary]}>
@@ -222,6 +231,10 @@ export default function App() {
                   placeholder="Escribe un mensaje..."
                   placeholderTextColor={COLORS.muted}
                 />
+                {/* BONUS: warning when the message reaches the limit */}
+                {isMessageTooLong && (
+                  <Text style={styles.error}>Llegaste al máximo de caracteres</Text>
+                )}
                 <View style={styles.composerFooter}>
                   <Text style={styles.counter}>
                     {message.length}/{MAX_MESSAGE} caracteres
@@ -477,5 +490,14 @@ const styles = StyleSheet.create({
   },
   tagTextSelected: {
     color: '#FFFFFF',
+  },
+  buttonBusy: {
+    opacity: 0.5,
+  },
+  error: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.error,
   },
 });

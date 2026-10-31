@@ -15,11 +15,20 @@ const COLORS = {
   offline: '#9CA3AF',
 };
 
+const NAME = 'Emmanuel Alejandro';
+const ROLE = 'Estudiante de Ingeniería en Sistemas Computacionales';
+const LOCATION = 'Guadalajara, Jalisco, México';
 const BIO =
-  'Building cross-platform apps with React Native. I love clean layouts, accessible design and sharing what I learn with the community. When I am not coding, I mentor junior developers, contribute to open source and explore new coffee shops around the city.';
+  'Soy estudiante del TSJ en mis últimos semestres de carrera, especializándome en el desarrollo web. He trabajado en una página web de asistencia vial, un sistema para una barbería con reconocimiento facial y un asistente virtual de primeros auxilios. Me gusta aprender nuevas tecnologías y trabajar en equipo.';
 
-const SKILLS = ['React Native', 'JavaScript', 'UI Design', 'Git', 'Flexbox'];
-const BASE_FOLLOWERS = 1200;
+const SKILLS = [
+  'Pensamiento crítico',
+  'Trabajo en equipo',
+  'Buena comunicación',
+  'Bases de datos',
+  'Desarrollo web',
+];
+const BASE_FOLLOWERS = 120;
 // TODO STEP 4: const MAX_MESSAGE = 140;
 
 // Adds thousands separators: 1200 -> '1,200'
@@ -31,9 +40,9 @@ export default function App() {
   // STEP 3: followers must grow by 1 while you are following
   const followers = BASE_FOLLOWERS;
   const stats = [
-    { label: 'Projects', value: '24' },
-    { label: 'Followers', value: formatCount(followers) },
-    { label: 'Following', value: '180' },
+    { label: 'Proyectos', value: '3' },
+    { label: 'Seguidores', value: formatCount(followers) },
+    { label: 'Siguiendo', value: '85' },
   ];
 
   // TODO STEP 1: write the event handlers (handleFollowPress, handleMessagePress, handleSharePress)
@@ -61,9 +70,9 @@ export default function App() {
               <View style={styles.onlineBadge} />
             </View>
             <View style={styles.headerText}>
-              <Text style={styles.name}>Alex Rivera</Text>
-              <Text style={styles.role}>Mobile Developer</Text>
-              <Text style={styles.location}>Lisbon, Portugal</Text>
+              <Text style={styles.name}>{NAME}</Text>
+              <Text style={styles.role}>{ROLE}</Text>
+              <Text style={styles.location}>{LOCATION}</Text>
             </View>
           </View>
 
@@ -98,10 +107,10 @@ export default function App() {
                 STEP 3: make the Follow button toggle between 'Follow' and 'Following'. */}
           <View style={styles.actions}>
             <View style={[styles.button, styles.buttonPrimary]}>
-              <Text style={[styles.buttonText, styles.buttonTextPrimary]}>Follow</Text>
+              <Text style={[styles.buttonText, styles.buttonTextPrimary]}>Seguir</Text>
             </View>
             <View style={styles.button}>
-              <Text style={styles.buttonText}>Message</Text>
+              <Text style={styles.buttonText}>Mensaje</Text>
             </View>
           </View>
 

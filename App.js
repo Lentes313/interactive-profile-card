@@ -11,6 +11,7 @@ import {
   Pressable,
   Button,
   Alert,
+  TextInput,
 } from 'react-native';
 import { useState } from 'react';
 
@@ -40,7 +41,7 @@ const SKILLS = [
   'Desarrollo web',
 ];
 const BASE_FOLLOWERS = 120;
-// TODO STEP 4: const MAX_MESSAGE = 140;
+const MAX_MESSAGE = 140;
 
 // Adds thousands separators: 1200 -> '1,200'
 function formatCount(n) {
@@ -50,6 +51,11 @@ function formatCount(n) {
 export default function App() {
   // STEP 3: follow / unfollow state
   const [isFollowing, setIsFollowing] = useState(false);
+
+  // STEP 4: message composer state
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const isSendDisabled = message.trim().length === 0;
 
   // STEP 3: followers is derived from the state, not a second useState
   const followers = BASE_FOLLOWERS + (isFollowing ? 1 : 0);
@@ -65,15 +71,21 @@ export default function App() {
     setIsFollowing(!isFollowing);
   }
 
+  // STEP 4: opens / closes the composer
   function handleMessagePress() {
-    Alert.alert('Mensaje', `Escríbele un mensaje a ${NAME}.`);
+    setIsComposerOpen(!isComposerOpen);
+  }
+
+  function handleSendPress() {
+    Alert.alert('Mensaje enviado', message);
+    setMessage('');
+    setIsComposerOpen(false);
   }
 
   function handleSharePress() {
     Alert.alert('Compartir perfil', 'El enlace a tu perfil está listo para compartir.');
   }
 
-  // TODO STEP 4: add the state for the message composer
   // TODO STEP 5: add the state for the bio, the online status and the selected skills
 
   return (
@@ -150,11 +162,40 @@ export default function App() {
               style={({ pressed }) => [styles.button, pressed && styles.pressed]}
               onPress={handleMessagePress}
             >
-              <Text style={styles.buttonText}>Mensaje</Text>
+              <Text style={styles.buttonText}>{isComposerOpen ? 'Cerrar' : 'Mensaje'}</Text>
             </Pressable>
           </View>
 
-          {/* TODO STEP 4: when 'Message' is pressed, show a composer here (TextInput + counter + Send) */}
+          {/* STEP 4: conditional rendering, the composer only exists while it is open */}
+          {isComposerOpen && (
+            <View style={styles.composer}>
+              {/* Controlled input: the text always comes from the state */}
+              <TextInput
+                style={styles.input}
+                value={message}
+                onChangeText={(newText) => setMessage(newText)}
+                maxLength={MAX_MESSAGE}
+                placeholder="Escribe un mensaje..."
+                placeholderTextColor={COLORS.muted}
+              />
+              <View style={styles.composerFooter}>
+                <Text style={styles.counter}>
+                  {message.length}/{MAX_MESSAGE} caracteres
+                </Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.sendButton,
+                    isSendDisabled && styles.sendButtonDisabled,
+                    pressed && styles.pressed,
+                  ]}
+                  onPress={handleSendPress}
+                  disabled={isSendDisabled}
+                >
+                  <Text style={styles.sendText}>Enviar</Text>
+                </Pressable>
+              </View>
+            </View>
+          )}
 
           {/* STEP 1: core Button. It has no style prop, so a View positions it. */}
           <View style={styles.shareWrapper}>

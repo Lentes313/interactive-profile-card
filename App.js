@@ -1,7 +1,17 @@
 // TASK 2 — Interactive Profile Card (starter)
 // Start point: the solution of Task 1 + the new data. Follow the steps in README.md.
 // TODO: add the imports you need in each step (Pressable, Button, Alert, TextInput, useState...)
-import { View, Text, Image, ScrollView, StyleSheet, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Platform,
+  Pressable,
+  Button,
+  Alert,
+} from 'react-native';
 
 const COLORS = {
   background: '#EEF1F6',
@@ -45,7 +55,19 @@ export default function App() {
     { label: 'Siguiendo', value: '85' },
   ];
 
-  // TODO STEP 1: write the event handlers (handleFollowPress, handleMessagePress, handleSharePress)
+  // STEP 1: event handlers. We pass the function itself to onPress, we don't call it.
+  function handleFollowPress() {
+    Alert.alert('Seguir', `Ahora sigues a ${NAME}.`);
+  }
+
+  function handleMessagePress() {
+    Alert.alert('Mensaje', `Escríbele un mensaje a ${NAME}.`);
+  }
+
+  function handleSharePress() {
+    Alert.alert('Compartir perfil', 'El enlace a tu perfil está listo para compartir.');
+  }
+
   // TODO STEP 3: add the state for follow / unfollow (useState)
   // TODO STEP 4: add the state for the message composer
   // TODO STEP 5: add the state for the bio, the online status and the selected skills
@@ -106,17 +128,27 @@ export default function App() {
                 STEP 2: give them visual feedback with the style function (pressed).
                 STEP 3: make the Follow button toggle between 'Follow' and 'Following'. */}
           <View style={styles.actions}>
-            <View style={[styles.button, styles.buttonPrimary]}>
+            <Pressable
+              style={[styles.button, styles.buttonPrimary]}
+              onPress={handleFollowPress}
+            >
               <Text style={[styles.buttonText, styles.buttonTextPrimary]}>Seguir</Text>
-            </View>
-            <View style={styles.button}>
+            </Pressable>
+            <Pressable style={styles.button} onPress={handleMessagePress}>
               <Text style={styles.buttonText}>Mensaje</Text>
-            </View>
+            </Pressable>
           </View>
 
           {/* TODO STEP 4: when 'Message' is pressed, show a composer here (TextInput + counter + Send) */}
 
-          {/* TODO STEP 1: add a 'Share profile' Button (core component) here */}
+          {/* STEP 1: core Button. It has no style prop, so a View positions it. */}
+          <View style={styles.shareWrapper}>
+            <Button
+              title="Compartir perfil"
+              color={COLORS.primary}
+              onPress={handleSharePress}
+            />
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -277,6 +309,72 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   buttonTextPrimary: {
+    color: '#FFFFFF',
+  },
+  buttonFollowing: {
+    backgroundColor: COLORS.primaryLight,
+  },
+  composer: {
+    marginTop: 16,
+  },
+  composerFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  counter: {
+    fontSize: 12,
+    color: COLORS.muted,
+  },
+  hint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: COLORS.muted,
+  },
+  input: {
+    height: 44,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+  },
+  link: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  offlineBadge: {
+    backgroundColor: COLORS.offline,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  sendButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+  },
+  sendButtonDisabled: {
+    backgroundColor: COLORS.offline,
+  },
+  sendText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  shareWrapper: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  tagSelected: {
+    backgroundColor: COLORS.primary,
+  },
+  tagTextSelected: {
     color: '#FFFFFF',
   },
 });

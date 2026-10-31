@@ -12,6 +12,7 @@ import {
   Button,
   Alert,
 } from 'react-native';
+import { useState } from 'react';
 
 const COLORS = {
   background: '#EEF1F6',
@@ -47,8 +48,11 @@ function formatCount(n) {
 }
 
 export default function App() {
-  // STEP 3: followers must grow by 1 while you are following
-  const followers = BASE_FOLLOWERS;
+  // STEP 3: follow / unfollow state
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  // STEP 3: followers is derived from the state, not a second useState
+  const followers = BASE_FOLLOWERS + (isFollowing ? 1 : 0);
   const stats = [
     { label: 'Proyectos', value: '3' },
     { label: 'Seguidores', value: formatCount(followers) },
@@ -56,8 +60,9 @@ export default function App() {
   ];
 
   // STEP 1: event handlers. We pass the function itself to onPress, we don't call it.
+  // STEP 3: toggles the value instead of showing an alert
   function handleFollowPress() {
-    Alert.alert('Seguir', `Ahora sigues a ${NAME}.`);
+    setIsFollowing(!isFollowing);
   }
 
   function handleMessagePress() {
@@ -68,7 +73,6 @@ export default function App() {
     Alert.alert('Compartir perfil', 'El enlace a tu perfil está listo para compartir.');
   }
 
-  // TODO STEP 3: add the state for follow / unfollow (useState)
   // TODO STEP 4: add the state for the message composer
   // TODO STEP 5: add the state for the bio, the online status and the selected skills
 
@@ -132,12 +136,15 @@ export default function App() {
             <Pressable
               style={({ pressed }) => [
                 styles.button,
-                styles.buttonPrimary,
+                isFollowing ? styles.buttonFollowing : styles.buttonPrimary,
                 pressed && styles.pressed,
               ]}
               onPress={handleFollowPress}
             >
-              <Text style={[styles.buttonText, styles.buttonTextPrimary]}>Seguir</Text>
+              {/* STEP 3: label and text color depend on the state */}
+              <Text style={[styles.buttonText, !isFollowing && styles.buttonTextPrimary]}>
+                {isFollowing ? 'Siguiendo' : 'Seguir'}
+              </Text>
             </Pressable>
             <Pressable
               style={({ pressed }) => [styles.button, pressed && styles.pressed]}

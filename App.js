@@ -1,7 +1,20 @@
-// TASK 2 — Interactive Profile Card (starter)
+// TASK 2 — Interactive Profile Card
 // Start point: the solution of Task 1 + the new data. Follow the steps in README.md.
-// TODO: add the imports you need in each step (Pressable, Button, Alert, TextInput, useState...)
-import { View, Text, Image, ScrollView, StyleSheet, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Platform,
+  Pressable,
+  Button,
+  Alert,
+  TextInput,
+  KeyboardAvoidingView,
+  Keyboard,
+} from 'react-native';
+import { useState, useRef, useEffect } from 'react';
 
 const COLORS = {
   background: '#EEF1F6',
@@ -13,104 +26,246 @@ const COLORS = {
   border: '#E5E7EB',
   online: '#22C55E',
   offline: '#9CA3AF',
+  error: '#DC2626',
 };
 
+const NAME = 'Emmanuel Alejandro';
+const ROLE = 'Estudiante de Ingeniería en Sistemas Computacionales';
+const LOCATION = 'Guadalajara, Jalisco, México';
 const BIO =
-  'Building cross-platform apps with React Native. I love clean layouts, accessible design and sharing what I learn with the community. When I am not coding, I mentor junior developers, contribute to open source and explore new coffee shops around the city.';
+  'Soy estudiante del TSJ en mis últimos semestres de carrera, especializándome en el desarrollo web. He trabajado en una página web de asistencia vial, un sistema para una barbería con reconocimiento facial y un asistente virtual de primeros auxilios. Me gusta aprender nuevas tecnologías y trabajar en equipo.';
 
-const SKILLS = ['React Native', 'JavaScript', 'UI Design', 'Git', 'Flexbox'];
-const BASE_FOLLOWERS = 1200;
-// TODO STEP 4: const MAX_MESSAGE = 140;
+const SKILLS = [
+  'Pensamiento crítico',
+  'Trabajo en equipo',
+  'Buena comunicación',
+  'Bases de datos',
+  'Desarrollo web',
+];
+const BASE_FOLLOWERS = 120;
+const MAX_MESSAGE = 140;
+const FOLLOW_BUSY_MS = 2000;
 
 // Adds thousands separators: 1200 -> '1,200'
 function formatCount(n) {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+// BONUS: reusable tag. The parent owns the state and passes selected + onPress.
+function Tag({ label, selected, onPress }) {
+  return (
+    <Pressable style={[styles.tag, selected && styles.tagSelected]} onPress={onPress}>
+      <Text style={[styles.tagText, selected && styles.tagTextSelected]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function App() {
-  // STEP 3: followers must grow by 1 while you are following
-  const followers = BASE_FOLLOWERS;
+  // STEP 3: follow / unfollow state
+  const [isFollowing, setIsFollowing] = useState(false);
+  // BONUS: the Follow button is disabled for 2 seconds after each press
+  const [isBusy, setIsBusy] = useState(false);
+
+  // STEP 4: message composer state
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const isSendDisabled = message.trim().length === 0;
+  const isMessageTooLong = message.length >= MAX_MESSAGE;
+
+  // When the keyboard opens, scroll down so the input stays visible above it.
+  const scrollRef = useRef(null);
+  useEffect(() => {
+    const subscription = Keyboard.addListener('keyboardDidShow', () => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => subscription.remove();
+  }, []);
+
+  // STEP 3: followers is derived from the state, not a second useState
+  const followers = BASE_FOLLOWERS + (isFollowing ? 1 : 0);
   const stats = [
-    { label: 'Projects', value: '24' },
-    { label: 'Followers', value: formatCount(followers) },
-    { label: 'Following', value: '180' },
+    { label: 'Proyectos', value: '3' },
+    { label: 'Seguidores', value: formatCount(followers) },
+    { label: 'Siguiendo', value: '85' },
   ];
 
-  // TODO STEP 1: write the event handlers (handleFollowPress, handleMessagePress, handleSharePress)
-  // TODO STEP 3: add the state for follow / unfollow (useState)
-  // TODO STEP 4: add the state for the message composer
-  // TODO STEP 5: add the state for the bio, the online status and the selected skills
+  // STEP 1: event handlers. We pass the function itself to onPress, we don't call it.
+  // STEP 3: toggles the value instead of showing an alert
+  function handleFollowPress() {
+    setIsFollowing(!isFollowing);
+    setIsBusy(true);
+    setTimeout(() => setIsBusy(false), FOLLOW_BUSY_MS);
+  }
+
+  // STEP 4: opens / closes the composer
+  function handleMessagePress() {
+    setIsComposerOpen(!isComposerOpen);
+  }
+
+  function handleSendPress() {
+    Alert.alert('Mensaje enviado', message);
+    setMessage('');
+    setIsComposerOpen(false);
+  }
+
+  function handleSharePress() {
+    Alert.alert('Compartir perfil', 'El enlace a tu perfil está listo para compartir.');
+  }
+
+  // STEP 5: state for the bio, the online status and the selected skills
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const [selectedSkills, setSelectedSkills] = useState([]);
+
+  // Never push into state: build a new array instead.
+  function handleSkillPress(skill) {
+    if (selectedSkills.includes(skill)) {
+      setSelectedSkills(selectedSkills.filter((item) => item !== skill));
+    } else {
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+  }
 
   return (
-    <ScrollView
+    // The screen shrinks while the keyboard is open, so the card can scroll above it.
+    <KeyboardAvoidingView
       style={styles.screen}
-      contentContainerStyle={styles.screenContent}
-      keyboardShouldPersistTaps="handled"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.card}>
-        <Image
-          source={require('./assets/banner.png')}
-          style={styles.banner}
-          resizeMode="cover"
-        />
-        <View style={styles.body}>
-          <View style={styles.headerRow}>
-            {/* TODO STEP 5: make the avatar pressable to toggle the online status */}
-            <View>
-              <Image source={require('./assets/avatar.png')} style={styles.avatar} />
-              <View style={styles.onlineBadge} />
+      <ScrollView
+        ref={scrollRef}
+        style={styles.screen}
+        contentContainerStyle={styles.screenContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.card}>
+          <Image
+            source={require('./assets/banner.png')}
+            style={styles.banner}
+            resizeMode="cover"
+          />
+          <View style={styles.body}>
+            <View style={styles.headerRow}>
+              {/* STEP 5: tap the avatar to toggle the online status */}
+              <Pressable onPress={() => setIsOnline(!isOnline)}>
+                <Image source={require('./assets/avatar.png')} style={styles.avatar} />
+                <View style={[styles.onlineBadge, !isOnline && styles.offlineBadge]} />
+              </Pressable>
+              <View style={styles.headerText}>
+                <Text style={styles.name}>{NAME}</Text>
+                <Text style={styles.role}>{ROLE}</Text>
+                <Text style={styles.location}>{LOCATION}</Text>
+              </View>
             </View>
-            <View style={styles.headerText}>
-              <Text style={styles.name}>Alex Rivera</Text>
-              <Text style={styles.role}>Mobile Developer</Text>
-              <Text style={styles.location}>Lisbon, Portugal</Text>
+
+            {/* STEP 5: undefined lines = show the whole bio */}
+            <Text style={styles.bio} numberOfLines={isBioExpanded ? undefined : 3}>
+              {BIO}
+            </Text>
+            <Pressable onPress={() => setIsBioExpanded(!isBioExpanded)}>
+              <Text style={styles.link}>{isBioExpanded ? 'Ver menos' : 'Leer más'}</Text>
+            </Pressable>
+
+            <View style={styles.statsRow}>
+              {stats.map((item, index) => (
+                <View
+                  key={item.label}
+                  style={[styles.stat, index < stats.length - 1 && styles.statDivider]}
+                >
+                  <Text style={styles.statValue}>{item.value}</Text>
+                  <Text style={styles.statLabel}>{item.label}</Text>
+                </View>
+              ))}
             </View>
-          </View>
 
-          {/* TODO STEP 5: add a 'Read more' / 'Show less' link to expand the bio */}
-          <Text style={styles.bio} numberOfLines={3}>
-            {BIO}
-          </Text>
+            {/* STEP 5: selectable skills (BONUS: rendered with the Tag component) */}
+            <View style={styles.tags}>
+              {SKILLS.map((skill) => (
+                <Tag
+                  key={skill}
+                  label={skill}
+                  selected={selectedSkills.includes(skill)}
+                  onPress={() => handleSkillPress(skill)}
+                />
+              ))}
+            </View>
+            <Text style={styles.hint}>
+              Toca una habilidad para seleccionarla · {selectedSkills.length} seleccionadas
+            </Text>
 
-          <View style={styles.statsRow}>
-            {stats.map((item, index) => (
-              <View
-                key={item.label}
-                style={[styles.stat, index < stats.length - 1 && styles.statDivider]}
+            {/* STEP 1: Pressable buttons with onPress */}
+            <View style={styles.actions}>
+              {/* STEP 2: style is a function that receives { pressed } and returns the styles. */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  isFollowing ? styles.buttonFollowing : styles.buttonPrimary,
+                  pressed && styles.pressed,
+                  isBusy && styles.buttonBusy,
+                ]}
+                onPress={handleFollowPress}
+                disabled={isBusy}
               >
-                <Text style={styles.statValue}>{item.value}</Text>
-                <Text style={styles.statLabel}>{item.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* TODO STEP 5: make the skills selectable (Pressable + array state) */}
-          <View style={styles.tags}>
-            {SKILLS.map((skill) => (
-              <View key={skill} style={styles.tag}>
-                <Text style={styles.tagText}>{skill}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* TODO STEP 1-3: turn these two Views into Pressable components with onPress.
-                STEP 2: give them visual feedback with the style function (pressed).
-                STEP 3: make the Follow button toggle between 'Follow' and 'Following'. */}
-          <View style={styles.actions}>
-            <View style={[styles.button, styles.buttonPrimary]}>
-              <Text style={[styles.buttonText, styles.buttonTextPrimary]}>Follow</Text>
+                {/* STEP 3: label and text color depend on the state */}
+                <Text style={[styles.buttonText, !isFollowing && styles.buttonTextPrimary]}>
+                  {isFollowing ? 'Siguiendo' : 'Seguir'}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+                onPress={handleMessagePress}
+              >
+                <Text style={styles.buttonText}>{isComposerOpen ? 'Cerrar' : 'Mensaje'}</Text>
+              </Pressable>
             </View>
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>Message</Text>
+
+            {/* STEP 4: conditional rendering, the composer only exists while it is open */}
+            {isComposerOpen && (
+              <View style={styles.composer}>
+                {/* Controlled input: the text always comes from the state */}
+                <TextInput
+                  style={styles.input}
+                  value={message}
+                  onChangeText={(newText) => setMessage(newText)}
+                  maxLength={MAX_MESSAGE}
+                  placeholder="Escribe un mensaje..."
+                  placeholderTextColor={COLORS.muted}
+                />
+                {/* BONUS: warning when the message reaches the limit */}
+                {isMessageTooLong && (
+                  <Text style={styles.error}>Llegaste al máximo de caracteres</Text>
+                )}
+                <View style={styles.composerFooter}>
+                  <Text style={styles.counter}>
+                    {message.length}/{MAX_MESSAGE} caracteres
+                  </Text>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.sendButton,
+                      isSendDisabled && styles.sendButtonDisabled,
+                      pressed && styles.pressed,
+                    ]}
+                    onPress={handleSendPress}
+                    disabled={isSendDisabled}
+                  >
+                    <Text style={styles.sendText}>Enviar</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+
+            {/* STEP 1: core Button. It has no style prop, so a View positions it. */}
+            <View style={styles.shareWrapper}>
+              <Button
+                title="Compartir perfil"
+                color={COLORS.primary}
+                onPress={handleSharePress}
+              />
             </View>
           </View>
-
-          {/* TODO STEP 4: when 'Message' is pressed, show a composer here (TextInput + counter + Send) */}
-
-          {/* TODO STEP 1: add a 'Share profile' Button (core component) here */}
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -269,5 +424,80 @@ const styles = StyleSheet.create({
   },
   buttonTextPrimary: {
     color: '#FFFFFF',
+  },
+  buttonFollowing: {
+    backgroundColor: COLORS.primaryLight,
+  },
+  composer: {
+    marginTop: 16,
+  },
+  composerFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  counter: {
+    fontSize: 12,
+    color: COLORS.muted,
+  },
+  hint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: COLORS.muted,
+  },
+  input: {
+    height: 44,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+  },
+  link: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  offlineBadge: {
+    backgroundColor: COLORS.offline,
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  sendButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+  },
+  sendButtonDisabled: {
+    backgroundColor: COLORS.offline,
+  },
+  sendText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  shareWrapper: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  tagSelected: {
+    backgroundColor: COLORS.primary,
+  },
+  tagTextSelected: {
+    color: '#FFFFFF',
+  },
+  buttonBusy: {
+    opacity: 0.5,
+  },
+  error: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.error,
   },
 });

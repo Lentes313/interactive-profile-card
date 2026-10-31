@@ -12,8 +12,10 @@ import {
   Button,
   Alert,
   TextInput,
+  KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 const COLORS = {
   background: '#EEF1F6',
@@ -57,6 +59,15 @@ export default function App() {
   const [message, setMessage] = useState('');
   const isSendDisabled = message.trim().length === 0;
 
+  // When the keyboard opens, scroll down so the input stays visible above it.
+  const scrollRef = useRef(null);
+  useEffect(() => {
+    const subscription = Keyboard.addListener('keyboardDidShow', () => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+    return () => subscription.remove();
+  }, []);
+
   // STEP 3: followers is derived from the state, not a second useState
   const followers = BASE_FOLLOWERS + (isFollowing ? 1 : 0);
   const stats = [
@@ -89,125 +100,132 @@ export default function App() {
   // TODO STEP 5: add the state for the bio, the online status and the selected skills
 
   return (
-    <ScrollView
+    // The screen shrinks while the keyboard is open, so the card can scroll above it.
+    <KeyboardAvoidingView
       style={styles.screen}
-      contentContainerStyle={styles.screenContent}
-      keyboardShouldPersistTaps="handled"
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.card}>
-        <Image
-          source={require('./assets/banner.png')}
-          style={styles.banner}
-          resizeMode="cover"
-        />
-        <View style={styles.body}>
-          <View style={styles.headerRow}>
-            {/* TODO STEP 5: make the avatar pressable to toggle the online status */}
-            <View>
-              <Image source={require('./assets/avatar.png')} style={styles.avatar} />
-              <View style={styles.onlineBadge} />
-            </View>
-            <View style={styles.headerText}>
-              <Text style={styles.name}>{NAME}</Text>
-              <Text style={styles.role}>{ROLE}</Text>
-              <Text style={styles.location}>{LOCATION}</Text>
-            </View>
-          </View>
-
-          {/* TODO STEP 5: add a 'Read more' / 'Show less' link to expand the bio */}
-          <Text style={styles.bio} numberOfLines={3}>
-            {BIO}
-          </Text>
-
-          <View style={styles.statsRow}>
-            {stats.map((item, index) => (
-              <View
-                key={item.label}
-                style={[styles.stat, index < stats.length - 1 && styles.statDivider]}
-              >
-                <Text style={styles.statValue}>{item.value}</Text>
-                <Text style={styles.statLabel}>{item.label}</Text>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.screen}
+        contentContainerStyle={styles.screenContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.card}>
+          <Image
+            source={require('./assets/banner.png')}
+            style={styles.banner}
+            resizeMode="cover"
+          />
+          <View style={styles.body}>
+            <View style={styles.headerRow}>
+              {/* TODO STEP 5: make the avatar pressable to toggle the online status */}
+              <View>
+                <Image source={require('./assets/avatar.png')} style={styles.avatar} />
+                <View style={styles.onlineBadge} />
               </View>
-            ))}
-          </View>
-
-          {/* TODO STEP 5: make the skills selectable (Pressable + array state) */}
-          <View style={styles.tags}>
-            {SKILLS.map((skill) => (
-              <View key={skill} style={styles.tag}>
-                <Text style={styles.tagText}>{skill}</Text>
+              <View style={styles.headerText}>
+                <Text style={styles.name}>{NAME}</Text>
+                <Text style={styles.role}>{ROLE}</Text>
+                <Text style={styles.location}>{LOCATION}</Text>
               </View>
-            ))}
-          </View>
+            </View>
 
-          {/* TODO STEP 1-3: turn these two Views into Pressable components with onPress.
-                STEP 2: give them visual feedback with the style function (pressed).
-                STEP 3: make the Follow button toggle between 'Follow' and 'Following'. */}
-          <View style={styles.actions}>
-            {/* STEP 2: style is a function that receives { pressed } and returns the styles. */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                isFollowing ? styles.buttonFollowing : styles.buttonPrimary,
-                pressed && styles.pressed,
-              ]}
-              onPress={handleFollowPress}
-            >
-              {/* STEP 3: label and text color depend on the state */}
-              <Text style={[styles.buttonText, !isFollowing && styles.buttonTextPrimary]}>
-                {isFollowing ? 'Siguiendo' : 'Seguir'}
-              </Text>
-            </Pressable>
-            <Pressable
-              style={({ pressed }) => [styles.button, pressed && styles.pressed]}
-              onPress={handleMessagePress}
-            >
-              <Text style={styles.buttonText}>{isComposerOpen ? 'Cerrar' : 'Mensaje'}</Text>
-            </Pressable>
-          </View>
+            {/* TODO STEP 5: add a 'Read more' / 'Show less' link to expand the bio */}
+            <Text style={styles.bio} numberOfLines={3}>
+              {BIO}
+            </Text>
 
-          {/* STEP 4: conditional rendering, the composer only exists while it is open */}
-          {isComposerOpen && (
-            <View style={styles.composer}>
-              {/* Controlled input: the text always comes from the state */}
-              <TextInput
-                style={styles.input}
-                value={message}
-                onChangeText={(newText) => setMessage(newText)}
-                maxLength={MAX_MESSAGE}
-                placeholder="Escribe un mensaje..."
-                placeholderTextColor={COLORS.muted}
-              />
-              <View style={styles.composerFooter}>
-                <Text style={styles.counter}>
-                  {message.length}/{MAX_MESSAGE} caracteres
-                </Text>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.sendButton,
-                    isSendDisabled && styles.sendButtonDisabled,
-                    pressed && styles.pressed,
-                  ]}
-                  onPress={handleSendPress}
-                  disabled={isSendDisabled}
+            <View style={styles.statsRow}>
+              {stats.map((item, index) => (
+                <View
+                  key={item.label}
+                  style={[styles.stat, index < stats.length - 1 && styles.statDivider]}
                 >
-                  <Text style={styles.sendText}>Enviar</Text>
-                </Pressable>
-              </View>
+                  <Text style={styles.statValue}>{item.value}</Text>
+                  <Text style={styles.statLabel}>{item.label}</Text>
+                </View>
+              ))}
             </View>
-          )}
 
-          {/* STEP 1: core Button. It has no style prop, so a View positions it. */}
-          <View style={styles.shareWrapper}>
-            <Button
-              title="Compartir perfil"
-              color={COLORS.primary}
-              onPress={handleSharePress}
-            />
+            {/* TODO STEP 5: make the skills selectable (Pressable + array state) */}
+            <View style={styles.tags}>
+              {SKILLS.map((skill) => (
+                <View key={skill} style={styles.tag}>
+                  <Text style={styles.tagText}>{skill}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* TODO STEP 1-3: turn these two Views into Pressable components with onPress.
+                  STEP 2: give them visual feedback with the style function (pressed).
+                  STEP 3: make the Follow button toggle between 'Follow' and 'Following'. */}
+            <View style={styles.actions}>
+              {/* STEP 2: style is a function that receives { pressed } and returns the styles. */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.button,
+                  isFollowing ? styles.buttonFollowing : styles.buttonPrimary,
+                  pressed && styles.pressed,
+                ]}
+                onPress={handleFollowPress}
+              >
+                {/* STEP 3: label and text color depend on the state */}
+                <Text style={[styles.buttonText, !isFollowing && styles.buttonTextPrimary]}>
+                  {isFollowing ? 'Siguiendo' : 'Seguir'}
+                </Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+                onPress={handleMessagePress}
+              >
+                <Text style={styles.buttonText}>{isComposerOpen ? 'Cerrar' : 'Mensaje'}</Text>
+              </Pressable>
+            </View>
+
+            {/* STEP 4: conditional rendering, the composer only exists while it is open */}
+            {isComposerOpen && (
+              <View style={styles.composer}>
+                {/* Controlled input: the text always comes from the state */}
+                <TextInput
+                  style={styles.input}
+                  value={message}
+                  onChangeText={(newText) => setMessage(newText)}
+                  maxLength={MAX_MESSAGE}
+                  placeholder="Escribe un mensaje..."
+                  placeholderTextColor={COLORS.muted}
+                />
+                <View style={styles.composerFooter}>
+                  <Text style={styles.counter}>
+                    {message.length}/{MAX_MESSAGE} caracteres
+                  </Text>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.sendButton,
+                      isSendDisabled && styles.sendButtonDisabled,
+                      pressed && styles.pressed,
+                    ]}
+                    onPress={handleSendPress}
+                    disabled={isSendDisabled}
+                  >
+                    <Text style={styles.sendText}>Enviar</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+
+            {/* STEP 1: core Button. It has no style prop, so a View positions it. */}
+            <View style={styles.shareWrapper}>
+              <Button
+                title="Compartir perfil"
+                color={COLORS.primary}
+                onPress={handleSharePress}
+              />
+            </View>
           </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
